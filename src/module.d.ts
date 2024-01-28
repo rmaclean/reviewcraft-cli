@@ -28,6 +28,7 @@ interface ISession {
   'Date Submitted': string
   'Owner Notes': string
   'Speaker Ids': string
+  'Talk Outline': string
 }
 
 interface ITeamComments {
@@ -66,4 +67,34 @@ interface IReviewerEvals {
   'K factor': string
   'Rating change': string
   'Rating': string
+}
+
+interface IReviewerSheetStats {
+  'Session Id': string
+  Title: string
+  Description: string
+  Owner: string
+  'Owner Email': string
+  Speakers: string
+  Track: string
+  ' Average (Evaluation)': string
+  ' Median (Evaluation)': string
+}
+
+interface IReviewer {
+  name: string
+  average: number
+  rank: number
+}
+
+interface IReviewerData {
+  average: number
+  originalRank: number
+}
+
+interface IReviewerStats {
+  average: number
+  median: number
+  originalRank: number
+  reviewersRank: number[]
 }

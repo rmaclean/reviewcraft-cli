@@ -6,6 +6,8 @@ import Handlebars from 'handlebars'
 import * as XLSX from 'xlsx'
 import clipboard from 'clipboardy'
 import chalk from 'chalk'
+import { getReviewStats } from './reviewStats.js'
+import { getReviewerStats } from './reviewerStats.js'
 
 const rl = readline.createInterface({ input, output })
 try {
@@ -21,40 +23,6 @@ try {
   const sessionData = XLSX.utils.sheet_to_json(data.Sheets.Sessions) as ISession[]
   const teamCommentsData = XLSX.utils.sheet_to_json(data.Sheets['Team comments']) as ITeamComments[]
   const evaluationResultsData = XLSX.utils.sheet_to_json(data.Sheets['Evaluation results']) as IEvaluationResults[]
-
-  const rawEvalData = await fs.readFile('data/evals.xlsx')
-  const evalData = XLSX.read(rawEvalData)
-
-  const getReviewStats = (sessionId: string): IReviewStats => {
-    const reviewStats: IReviewStats = {
-      diamond: 0,
-      hardNo: 0,
-      seen: 0
-    }
-
-    evalData.SheetNames.forEach(sheetName => {
-      (XLSX.utils.sheet_to_json(evalData.Sheets[sheetName]) as IReviewerEvals[])
-        .filter(review => review['Session Id'] === sessionId)
-        .forEach(dataPoint => {
-          if (dataPoint.Action !== 'Ignored') {
-            reviewStats.seen++
-          }
-
-          switch (dataPoint.Action) {
-            case 'Doesn\'t fit': {
-              reviewStats.hardNo++
-              break
-            }
-            case 'Top session': {
-              reviewStats.diamond++
-              break
-            }
-          }
-        })
-    })
-
-    return reviewStats
-  }
 
   const findSpeaker = (email: string): (ISpeaker | null) => {
     for (let index = 0; index < speakerData.length; index++) {
@@ -101,8 +69,9 @@ try {
       const session = sessions[index]
 
       const comments = findComments(session['Session Id']).map(comment => comment.Comment)
-      const rank = findRank(session['Session Id'])
+      const rank = findRank(session['Session Id']) + 1
       const stats = getReviewStats(session['Session Id'])
+      const reviewerStats = getReviewerStats(session['Session Id'])
       let notes = session['Owner Notes'] ?? ''
       if (notes.trim() === '') { notes = '(no notes provided by the presenter)\n' }
 
@@ -110,6 +79,10 @@ try {
       console.log(session.Title)
       console.log()
       console.log(session.Description)
+      console.log()
+      console.log(session['Talk Outline'])
+      console.log()
+      console.log('Track: ' + session.Track)
       console.log()
       console.log(`Notes:\n${notes}`)
       console.log()
@@ -121,9 +94,11 @@ try {
       console.log()
       console.log(`Rank: ${rank}`)
       console.dir(stats)
+      console.dir(reviewerStats)
       if (session.Status === 'Accepted') {
         console.log(chalk.green('This talk was accepted!'))
       }
+
       const feedback = await rl.question('Feedback: ')
       console.log()
 
@@ -145,13 +120,17 @@ try {
       talks.push(talkTemplate({
         title: session.Title,
         description: session.Description,
+        outline: session['Talk Outline'],
         notes,
         rank,
         reviewerFeedback,
         feedback,
         seen: stats.seen,
         hardNo: stats.hardNo,
-        diamond: stats.diamond
+        diamond: stats.diamond,
+        average: reviewerStats.average,
+        median: reviewerStats.median,
+        reviewerRank: reviewerStats.reviewersRank
       }))
     }
 
