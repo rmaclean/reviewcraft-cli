@@ -69,7 +69,6 @@ try {
       const session = sessions[index]
 
       const comments = findComments(session['Session Id']).map(comment => comment.Comment)
-      const rank = findRank(session['Session Id']) + 1
       const stats = getReviewStats(session['Session Id'])
       const reviewerStats = getReviewerStats(session['Session Id'])
       let notes = session['Owner Notes'] ?? ''
@@ -92,7 +91,6 @@ try {
         console.log(`${commentIndex}) ${comment}`)
       }
       console.log()
-      console.log(`Rank: ${rank}`)
       console.dir(stats)
       console.dir(reviewerStats)
       if (session.Status === 'Accepted') {
@@ -114,7 +112,7 @@ try {
       }
 
       if (reviewerFeedback === '') {
-        reviewerFeedback = 'No reviewer feedback provided'
+        reviewerFeedback = 'No reviewer\'s feedback was provided during the review process for this submission.'
       }
 
       talks.push(talkTemplate({
@@ -122,7 +120,7 @@ try {
         description: session.Description,
         outline: session['Talk Outline'],
         notes,
-        rank,
+        rank: reviewerStats.originalRank + 1,
         reviewerFeedback,
         feedback,
         seen: stats.seen,
