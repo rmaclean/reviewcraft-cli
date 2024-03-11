@@ -22,7 +22,6 @@ try {
   const speakerData = XLSX.utils.sheet_to_json(data.Sheets.Speakers) as ISpeaker[]
   const sessionData = XLSX.utils.sheet_to_json(data.Sheets.Sessions) as ISession[]
   const teamCommentsData = XLSX.utils.sheet_to_json(data.Sheets['Team comments']) as ITeamComments[]
-  const evaluationResultsData = XLSX.utils.sheet_to_json(data.Sheets['Evaluation results']) as IEvaluationResults[]
 
   const findSpeaker = (email: string): (ISpeaker | null) => {
     for (let index = 0; index < speakerData.length; index++) {
@@ -37,10 +36,6 @@ try {
 
   const findComments = (sessionId: string): ITeamComments[] => {
     return teamCommentsData.filter(comment => comment['Session Id'] === sessionId)
-  }
-
-  const findRank = (sessionId: string): number => {
-    return evaluationResultsData.findIndex(evaluation => evaluation['Session Id'] === sessionId)
   }
 
   const findSessions = (speakerId: string): ISession[] => {
@@ -79,9 +74,15 @@ try {
       console.log()
       console.log(session.Description)
       console.log()
-      console.log(session['Talk Outline'])
+      console.log('.0.0.0.0.0.0.0.0.0.0.0.0.0.0.')
+      console.log()
+      console.log(`Outline:\n${session['Talk Outline']}`)
+      console.log()
+      console.log('.0.0.0.0.0.0.0.0.0.0.0.0.0.0.')
       console.log()
       console.log('Track: ' + session.Track)
+      console.log()
+      console.log('.0.0.0.0.0.0.0.0.0.0.0.0.0.0.')
       console.log()
       console.log(`Notes:\n${notes}`)
       console.log()
