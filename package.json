@@ -8,20 +8,22 @@
   "type": "module",
   "scripts": {
     "start": "tsc && node dist/app.js",
-    "lint": "eslint . --ext .ts --fix"
+    "lint": "eslint . --fix"
   },
   "devDependencies": {
-    "@types/node": "^20.11.25",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "eslint": "^8.57.0",
-    "eslint-config-standard-with-typescript": "^43.0.1",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-promise": "^6.1.1",
-    "typescript": "5.4.2"
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.19.0",
+    "@types/node": "^22.10.10",
+    "eslint": "^9.19.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-n": "^17.15.1",
+    "eslint-plugin-promise": "^7.2.1",
+    "globals": "^15.14.0",
+    "typescript": "5.7.3",
+    "typescript-eslint": "^8.21.0"
   },
   "dependencies": {
-    "chalk": "^5.3.0",
+    "chalk": "^5.4.1",
     "clipboardy": "^4.0.0",
     "handlebars": "^4.7.8",
     "xlsx": "^0.18.5"

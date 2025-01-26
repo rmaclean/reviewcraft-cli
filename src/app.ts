@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+
 import * as readline from 'node:readline/promises'
 import { stdin as input, stdout as output } from 'node:process'
 import * as fs from 'node:fs/promises'
@@ -17,7 +17,7 @@ try {
   const rawTalkTemplate = await fs.readFile('./template/talk.handlebars', 'utf8')
   const talkTemplate = Handlebars.compile(rawTalkTemplate)
 
-  const rawData = await fs.readFile('data/devconf.xlsx')
+  const rawData = await fs.readFile('data/data.xlsx')
   const data = XLSX.read(rawData)
   const speakerData = XLSX.utils.sheet_to_json(data.Sheets.Speakers) as ISpeaker[]
   const sessionData = XLSX.utils.sheet_to_json(data.Sheets.Sessions) as ISession[]
@@ -35,7 +35,7 @@ try {
   }
 
   const findComments = (sessionId: string): ITeamComments[] => {
-    return teamCommentsData.filter(comment => comment['Session Id'] === sessionId)
+    return teamCommentsData.filter(comment => (comment['Session Id'] === sessionId && comment.Comment.trim().length >= 2))
   }
 
   const findSessions = (speakerId: string): ISession[] => {
@@ -47,7 +47,7 @@ try {
 
   const processRequest = async (): Promise<void> => {
     const email = await rl.question(chalk.white('Speaker email: '))
-    const speaker = findSpeaker(email)
+    const speaker = findSpeaker(email.trim())
     if (speaker == null) {
       console.log(chalk.red('Speaker not found!'))
       return
@@ -135,9 +135,10 @@ try {
 
     const emailText = emailTemplate({
       firstName: speaker.FirstName,
-      pluralS: talks.length === 2 ? 's' : '',
+      pluralS: talks.length > 1 ? 's' : '',
       talk1: talks[0],
-      talk2: talks.length === 2 ? talks[1] : ''
+      talk2: talks.length > 1 ? talks[1] : '',
+      talk3: talks.length > 2 ? talks[2] : '',
     })
 
     await clipboard.write(emailText)

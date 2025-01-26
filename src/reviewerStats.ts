@@ -9,8 +9,8 @@ const evaluatorData: IReviewerSheetStats[] = XLSX.utils.sheet_to_json(sheet)
 
 const data: Record<string, IReviewerStats> = {}
 
-const range = ['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-  'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK']
+const range = ['N', 'O', 'P', 'Q', 'R', 'S', 'T',
+  'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL']
 
 const endRow = 480
 

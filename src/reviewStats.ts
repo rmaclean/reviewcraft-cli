@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+ 
 import * as fs from 'node:fs/promises'
 import * as XLSX from 'xlsx'
 
