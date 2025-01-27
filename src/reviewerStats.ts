@@ -1,6 +1,6 @@
 import * as fs from 'node:fs/promises'
 import XLSX from 'xlsx'
-import ranker, { type IRankedItem } from './ranker.js'
+import ranker, { type IRankedItem } from './ranker.ts'
 
 const evaluatorRawData = await fs.readFile('data/reviewers.xlsx')
 const evaluatorDataBook = XLSX.read(evaluatorRawData)

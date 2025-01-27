@@ -6,8 +6,8 @@ import Handlebars from 'handlebars'
 import * as XLSX from 'xlsx'
 import clipboard from 'clipboardy'
 import chalk from 'chalk'
-import { getReviewStats } from './reviewStats.js'
-import { getReviewerStats } from './reviewerStats.js'
+import { getReviewStats } from './reviewStats.ts'
+import { getReviewerStats } from './reviewerStats.ts'
 
 const rl = readline.createInterface({ input, output })
 try {
