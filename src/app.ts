@@ -93,7 +93,8 @@ try {
       }
       console.log()
       console.dir(stats)
-      console.dir(reviewerStats)
+      console.log(`Final Rank: ${reviewerStats.originalRank}`)
+      console.log(`Reviewers Rank: ${reviewerStats.reviewersRank.toSorted()}`)
       if (session.Status === 'Accepted') {
         console.log(chalk.green('This talk was accepted!'))
       }
@@ -129,7 +130,7 @@ try {
         diamond: stats.diamond,
         average: reviewerStats.average,
         median: reviewerStats.median,
-        reviewerRank: reviewerStats.reviewersRank
+        reviewerRank: reviewerStats.reviewersRank.toSorted()
       }))
     }
 
