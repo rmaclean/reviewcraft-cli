@@ -1,100 +1,100 @@
 interface ISpeaker {
-  'Speaker Id': string
-  FirstName: string
-  LastName: string
-  Email: string | undefined
-  TagLine: string
-  Bio: string
-  Twitter: string
-  'Your pronouns': string
-  'Racial Group': string
-  'Are you based in South Africa?': 'Yes' | 'No'
-  'DevConf is an in-person event': string
-  'Mailing List': string
-  LinkedIn: string
-  'Company Website': string
-  'Profile Picture': string
+  "Speaker Id": string;
+  FirstName: string;
+  LastName: string;
+  Email: string | undefined;
+  TagLine: string;
+  Bio: string;
+  Twitter: string;
+  "Your pronouns": string;
+  "Racial Group": string;
+  "Are you based in South Africa?": "Yes" | "No";
+  "DevConf is an in-person event": string;
+  "Mailing List": string;
+  LinkedIn: string;
+  "Company Website": string;
+  "Profile Picture": string;
 }
 
 interface ISession {
-  'Session Id': string
-  Title: string
-  Description: string
-  Owner: string
-  'Owner Email': string
-  Speakers: string
-  Track: string
-  Status: 'Accepted' | 'Declined'
-  'Date Submitted': string
-  'Owner Notes': string
-  'Speaker Ids': string
-  'Talk Outline': string
+  "Session Id": string;
+  Title: string;
+  Description: string;
+  Owner: string;
+  "Owner Email": string;
+  Speakers: string;
+  Theme: string;
+  Status: "Accepted" | "Declined";
+  "Date Submitted": string;
+  "Owner Notes": string;
+  "Speaker Ids": string;
+  "Talk Outline": string;
 }
 
 interface ITeamComments {
-  'Session Id': string
-  Session: string
-  Comment: string
-  Author: string
-  DateCommented: string
+  "Session Id": string;
+  Session: string;
+  Comment: string;
+  Author: string;
+  DateCommented: string;
 }
 
 interface IEvaluationResults {
-  'Session Id': string
-  Title: string
-  Description: string
-  Owner: string
-  'Owner Email': string
-  Track: string
-  Evaluation: string
+  "Session Id": string;
+  Title: string;
+  Description: string;
+  Owner: string;
+  "Owner Email": string;
+  Track: string;
+  Evaluation: string;
 }
 
 interface IReviewStats {
-  hardNo: number
-  diamond: number
-  seen: number
+  hardNo: number;
+  diamond: number;
+  seen: number;
 }
 
 interface IReviewerEvals {
-  'Session Id': string
-  Session: string
-  'Comparison Id': string
-  'Compared at': string
-  'Action': 'Ranked' | 'Doesn\'t fit' | 'Top session' | 'Ignored'
-  'Ranked as': string
-  'Expected score': string
-  'Actual score': string
-  'K factor': string
-  'Rating change': string
-  'Rating': string
+  "Session Id": string;
+  Session: string;
+  "Comparison Id": string;
+  "Compared at": string;
+  "Action": "Ranked" | "Doesn't fit" | "Top session" | "Ignored";
+  "Ranked as": string;
+  "Expected score": string;
+  "Actual score": string;
+  "K factor": string;
+  "Rating change": string;
+  "Rating": string;
 }
 
 interface IReviewerSheetStats {
-  'Session Id': string
-  Title: string
-  Description: string
-  Owner: string
-  'Owner Email': string
-  Speakers: string
-  Track: string
-  ' Average (Evaluation)': string
-  ' Median (Evaluation)': string
+  "Session Id": string;
+  Title: string;
+  Description: string;
+  Owner: string;
+  "Owner Email": string;
+  Speakers: string;
+  Track: string;
+  " Average (Evaluation)": string;
+  " Median (Evaluation)": string;
 }
 
 interface IReviewer {
-  name: string
-  average: number
-  rank: number
+  name: string;
+  average: number;
+  rank: number;
 }
 
 interface IReviewerData {
-  average: number
-  originalRank: number
+  average: number;
+  originalRank: number;
 }
 
 interface IReviewerStats {
-  average: number
-  median: number
-  originalRank: number
-  reviewersRank: number[]
+  average: number;
+  median: number;
+  originalRank: number;
+  reviewersRank: number[];
 }

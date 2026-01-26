@@ -1,12 +1,15 @@
 {
   "tasks": {
     // --allow-env=__IS_WSL_TEST__,OSTYPE,FORCE_COLOR,TF_BUILD,TERM,CI,TEAMCITY_VERSION,COLORTERM --allow-read=./data/evals.xlsx,./data/reviewers.xlsx,./template/email.handlebars,./template/talk.handlebars,./data/data.xlsx,<CWD> --allow-run=pbcopy
-    "run": "deno run --allow-env --allow-read --allow-run ./src/app.ts"
+    "run": "deno run -A ./src/app.ts"
   },
   "imports": {
-    "chalk": "npm:chalk@^5.4.1",
-    "clipboardy": "npm:clipboardy@^4.0.0",
+    "@types/terminal-kit": "npm:@types/terminal-kit@^2.5.7",
     "handlebars": "npm:handlebars@^4.7.8",
+    "terminal-kit": "npm:terminal-kit@^3.1.2",
     "xlsx": "npm:xlsx@^0.18.5"
+  },
+  "fmt": {
+    "lineWidth": 120
   }
 }

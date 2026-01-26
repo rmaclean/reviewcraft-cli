@@ -1,172 +1,170 @@
+import Handlebars from "handlebars";
+import * as XLSX from "xlsx";
+import { getReviewStats } from "./reviewStats.ts";
+import { getReviewerStats } from "./reviewerStats.ts";
+import term from "terminal-kit";
+import { copyRichText } from "./copyRichText.ts";
 
-import * as readline from 'node:readline/promises'
-import { stdin as input, stdout as output } from 'node:process'
-import * as fs from 'node:fs/promises'
-import Handlebars from 'handlebars'
-import * as XLSX from 'xlsx'
-import clipboard from 'clipboardy'
-import chalk from 'chalk'
-import { getReviewStats } from './reviewStats.ts'
-import { getReviewerStats } from './reviewerStats.ts'
+const terminal = term.terminal;
 
-const rl = readline.createInterface({ input, output })
-try {
-  const rawEmailTemplate = await fs.readFile('./template/email.handlebars', 'utf8')
-  const emailTemplate = Handlebars.compile(rawEmailTemplate)
+terminal.windowTitle("ReviewCraft");
 
-  const rawTalkTemplate = await fs.readFile('./template/talk.handlebars', 'utf8')
-  const talkTemplate = Handlebars.compile(rawTalkTemplate)
+const rawEmailTemplate = await Deno.readTextFile("./template/email.handlebars");
+const emailTemplate = Handlebars.compile(rawEmailTemplate);
 
-  const rawData = await fs.readFile('data/data.xlsx')
-  const data = XLSX.read(rawData)
-  const speakerData = XLSX.utils.sheet_to_json(data.Sheets.Speakers) as ISpeaker[]
-  const sessionData = XLSX.utils.sheet_to_json(data.Sheets.Sessions) as ISession[]
-  const teamCommentsData = XLSX.utils.sheet_to_json(data.Sheets['Team comments']) as ITeamComments[]
+const rawTalkTemplate = await Deno.readTextFile("./template/talk.handlebars");
+const talkTemplate = Handlebars.compile(rawTalkTemplate);
 
-  const findSpeaker = (email: string): (ISpeaker | null) => {
-    for (let index = 0; index < speakerData.length; index++) {
-      const speaker = speakerData[index]
-      if (speaker.Email?.toLocaleLowerCase() === email.toLocaleLowerCase()) {
-        return speaker
-      }
+const rawData = await Deno.readFile("data/data.xlsx");
+const data = XLSX.read(rawData);
+const speakerData = XLSX.utils.sheet_to_json(data.Sheets.Speakers) as ISpeaker[];
+const sessionData = XLSX.utils.sheet_to_json(data.Sheets.Sessions) as ISession[];
+const teamCommentsData = XLSX.utils.sheet_to_json(data.Sheets["Team comments"]) as ITeamComments[];
+
+const findSpeaker = (email: string): ISpeaker | null => {
+  for (let index = 0; index < speakerData.length; index++) {
+    const speaker = speakerData[index];
+    if (speaker.Email?.toLocaleLowerCase() === email.toLocaleLowerCase()) {
+      return speaker;
+    }
+  }
+
+  return null;
+};
+
+const findComments = (sessionId: string): ITeamComments[] => {
+  return teamCommentsData.filter(
+    (comment) => (comment["Session Id"] === sessionId && comment.Comment.trim().length >= 2),
+  );
+};
+
+const findSessions = (speakerId: string): ISession[] => {
+  return sessionData.filter((session) => {
+    const speakerIds = session["Speaker Ids"].split(",");
+    return speakerIds.includes(speakerId);
+  });
+};
+
+const processRequest = async (): Promise<void> => {
+  terminal("\nSpeaker email: ");
+  const email = await terminal.inputField({
+    cancelable: true,
+  }).promise;
+  if (!email) {
+    return;
+  }
+
+  const speaker = findSpeaker(email.trim());
+  if (speaker == null) {
+    terminal.red.bold("Speaker not found!");
+    return;
+  }
+
+  if (speaker["Are you based in South Africa?"]) {
+    terminal.yellow("\n\nSpeaker is local");
+  }
+
+  const sessions = findSessions(speaker["Speaker Id"]);
+
+  const talks: string[] = [];
+
+  for (let index = 0; index < sessions.length; index++) {
+    const session = sessions[index];
+
+    const comments = findComments(session["Session Id"]).map((comment) => comment.Comment);
+    const stats = getReviewStats(session["Session Id"]);
+    const reviewerStats = getReviewerStats(session["Session Id"]);
+    let notes = session["Owner Notes"] ?? "";
+    if (notes.trim() === "") notes = "(no notes provided by the presenter)\n";
+
+    terminal.bold.cyan(`\n\n${session.Title}`);
+    terminal(`\n\n${session.Description}`);
+    terminal.gray(`\n\nOutline:\n`).defaultColor(session["Talk Outline"]);
+    terminal.gray(`\n\n.0.0.0.0.0.0.0.0.0.0.0.0.0.0.`);
+    terminal.gray('\nTrack: ' + session.Theme)
+    terminal.gray(`\n\Notes:\n`).defaultColor(notes);
+    terminal.gray(`\n\Comments:\n`);
+    for (let commentIndex = 0; commentIndex < comments.length; commentIndex++) {
+      const comment = comments[commentIndex];
+
+      terminal(`\n${comment}`);
     }
 
-    return null
-  }
+    terminal(`\n${JSON.stringify(stats)}`);
+    terminal.grey(`\nFinal Rank: `).defaultColor(reviewerStats?.originalRank);
+    terminal.grey(`\nReviewers Rank: `).defaultColor(reviewerStats?.reviewersRank.toSorted());
 
-  const findComments = (sessionId: string): ITeamComments[] => {
-    return teamCommentsData.filter(comment => (comment['Session Id'] === sessionId && comment.Comment.trim().length >= 2))
-  }
-
-  const findSessions = (speakerId: string): ISession[] => {
-    return sessionData.filter(session => {
-      const speakerIds = session['Speaker Ids'].split(',')
-      return speakerIds.includes(speakerId)
-    })
-  }
-
-  const processRequest = async (): Promise<void> => {
-    const email = await rl.question(chalk.white('Speaker email: '))
-    const speaker = findSpeaker(email.trim())
-    if (speaker == null) {
-      console.log(chalk.red('Speaker not found!'))
-      return
+    if (session.Status === "Accepted") {
+      terminal.brightGreen(`\nThis talk was accepted!`);
     }
 
-    console.log()
-    const localColor = speaker['Are you based in South Africa?'] === 'Yes' ? chalk.green : chalk.yellow
-    console.log(`Speaker is local? ${localColor(speaker['Are you based in South Africa?'])}`)
-    const sessions = findSessions(speaker['Speaker Id'])
+    terminal.grey("\nFeedback:");
 
-    const talks: string[] = []
+    const feedback = await terminal.inputField({
+      cancelable: true,
+    }).promise;
 
-    for (let index = 0; index < sessions.length; index++) {
-      const session = sessions[index]
-
-      const comments = findComments(session['Session Id']).map(comment => comment.Comment)
-      const stats = getReviewStats(session['Session Id'])
-      const reviewerStats = getReviewerStats(session['Session Id'])
-      let notes = session['Owner Notes'] ?? ''
-      if (notes.trim() === '') { notes = '(no notes provided by the presenter)\n' }
-
-      console.log()
-      console.log(session.Title)
-      console.log()
-      console.log(session.Description)
-      console.log()
-      console.log('.0.0.0.0.0.0.0.0.0.0.0.0.0.0.')
-      console.log()
-      console.log(`Outline:\n${session['Talk Outline']}`)
-      console.log()
-      console.log('.0.0.0.0.0.0.0.0.0.0.0.0.0.0.')
-      console.log()
-      console.log('Track: ' + session.Track)
-      console.log()
-      console.log('.0.0.0.0.0.0.0.0.0.0.0.0.0.0.')
-      console.log()
-      console.log(`Notes:\n${notes}`)
-      console.log()
-      console.log('Comments:')
+    let reviewerFeedback = "";
+    if (comments.length > 0) {
       for (let commentIndex = 0; commentIndex < comments.length; commentIndex++) {
-        const comment = comments[commentIndex]
-        console.log(`${commentIndex}) ${comment}`)
-      }
-      console.log()
-      console.dir(stats)
-      console.log(`Final Rank: ${reviewerStats.originalRank}`)
-      console.log(`Reviewers Rank: ${reviewerStats.reviewersRank.toSorted()}`)
-      if (session.Status === 'Accepted') {
-        console.log(chalk.green('This talk was accepted!'))
-      }
+        const comment = comments[commentIndex];
+        terminal(`\nInclude this feedback "${comment}" (Y/n): `);
 
-      const feedback = await rl.question('Feedback: ')
-      console.log()
-
-      let reviewerFeedback = ''
-      if (comments.length > 0) {
-        for (let commentIndex = 0; commentIndex < comments.length; commentIndex++) {
-          const comment = comments[commentIndex]
-          const add = await rl.question(`Include this feedback "${comment}" (Y/n): `)
-          if (add === '' || add.toLocaleLowerCase() === 'y') {
-            reviewerFeedback += `💠 ${comment}\n`
-          }
+        const add = await terminal.yesOrNo({
+          yes: ["y", "Y", "ENTER"],
+          no: ["n", "N"],
+        }).promise;
+        if (add) {
+          reviewerFeedback += `<li>${comment}</li>\n`;
         }
       }
-
-      if (reviewerFeedback === '') {
-        reviewerFeedback = 'No reviewer\'s feedback was provided during the review process for this submission.'
-      }
-
-      talks.push(talkTemplate({
-        title: session.Title,
-        description: session.Description,
-        outline: session['Talk Outline'],
-        notes,
-        rank: reviewerStats.originalRank + 1,
-        reviewerFeedback,
-        feedback,
-        seen: stats.seen,
-        hardNo: stats.hardNo,
-        diamond: stats.diamond,
-        average: reviewerStats.average,
-        median: reviewerStats.median,
-        reviewerRank: reviewerStats.reviewersRank.toSorted()
-      }))
     }
 
-    const emailText = emailTemplate({
-      firstName: speaker.FirstName,
-      pluralS: talks.length > 1 ? 's' : '',
-      talk1: talks[0],
-      talk2: talks.length > 1 ? talks[1] : '',
-      talk3: talks.length > 2 ? talks[2] : '',
-    })
-
-    await clipboard.write(emailText)
-  }
-
-  const askForMore = async (): Promise<boolean> => {
-    let more = ''
-    while (true) {
-      more = (await rl.question('More (Y/n): ')).toLocaleLowerCase()
-      if (more === '') {
-        more = 'y'
-      }
-      if (more === 'n' || more === 'y') {
-        break
-      }
+    if (reviewerFeedback === "") {
+      reviewerFeedback = "<li>No reviewer's feedback was provided during the review process for this submission.</li>";
     }
 
-    return more === 'y'
+    talks.push(talkTemplate({
+      title: session.Title,
+      description: session.Description,
+      outline: session["Talk Outline"],
+      notes,
+      rank: reviewerStats.originalRank + 1,
+      reviewerFeedback,
+      feedback,
+      seen: stats.seen,
+      hardNo: stats.hardNo,
+      diamond: stats.diamond,
+      average: reviewerStats.average,
+      median: reviewerStats.median,
+      reviewerRank: reviewerStats.reviewersRank.toSorted(),
+    }));
   }
 
-  while (true) {
-    await processRequest()
-    const more = await askForMore()
-    if (!more) {
-      break
-    }
+  const emailText = emailTemplate({
+    firstName: speaker.FirstName,
+    pluralS: talks.length > 1 ? "s" : "",
+    talk1: talks[0],
+    talk2: talks.length > 1 ? talks[1] : "",
+    talk3: talks.length > 2 ? talks[2] : "",
+  });
+
+  await copyRichText(emailText);
+};
+
+const askForMore = async (): Promise<boolean> => {
+  terminal("\nMore (Y/n): ");
+  return (await terminal.yesOrNo({
+    yes: ["y", "Y", "ENTER"],
+    no: ["n", "N"],
+  }).promise) ?? false;
+};
+
+while (true) {
+  await processRequest();
+  const more = await askForMore();
+  if (!more) {
+    terminal.processExit(0);
+    break;
   }
-} finally {
-  rl.close()
 }
