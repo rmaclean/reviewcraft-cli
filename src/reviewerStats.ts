@@ -35,6 +35,12 @@ const range = [
   "AJ",
   "AK",
   "AL",
+  "AM",
+  "AN",
+  "AO",
+  "AP",
+  "AQ",
+  "AR",
 ];
 
 const endRow = 480;

@@ -60,7 +60,7 @@ const processRequest = async (): Promise<void> => {
     return;
   }
 
-  if (speaker["Are you based in South Africa?"]) {
+  if (speaker["Are you based in South Africa?"] === "Yes") {
     terminal.yellow("\n\nSpeaker is local");
   }
 
@@ -92,7 +92,8 @@ const processRequest = async (): Promise<void> => {
 
     terminal(`\n${JSON.stringify(stats)}`);
     terminal.grey(`\nFinal Rank: `).defaultColor(reviewerStats?.originalRank);
-    terminal.grey(`\nReviewers Rank: `).defaultColor(reviewerStats?.reviewersRank.toSorted());
+    const reviewsRankings = reviewerStats?.reviewersRank.toSorted((a, b) => a - b).join(", ");
+    terminal.grey(`\nReviewers Rank: `).defaultColor(reviewsRankings);
 
     if (session.Status === "Accepted") {
       terminal.brightGreen(`\nThis talk was accepted!`);
@@ -129,15 +130,15 @@ const processRequest = async (): Promise<void> => {
       description: session.Description,
       outline: session["Talk Outline"],
       notes,
-      rank: reviewerStats.originalRank + 1,
+      rank: (reviewerStats?.originalRank ?? 0) + 1,
       reviewerFeedback,
       feedback,
-      seen: stats.seen,
-      hardNo: stats.hardNo,
-      diamond: stats.diamond,
-      average: reviewerStats.average,
-      median: reviewerStats.median,
-      reviewerRank: reviewerStats.reviewersRank.toSorted(),
+      seen: stats?.seen,
+      hardNo: stats?.hardNo,
+      diamond: stats?.diamond,
+      average: reviewerStats?.average,
+      median: reviewerStats?.median,
+      reviewerRank: reviewsRankings,
     }));
   }
 
